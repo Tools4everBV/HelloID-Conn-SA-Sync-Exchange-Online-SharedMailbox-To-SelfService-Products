@@ -56,7 +56,6 @@ The connection settings are defined in the automation variables [user defined va
 | $portalApiSecret              | HelloID Api Secret                      | (Default Global Variable)    |
 | $ExchangeAdminUsername        | Exchange BaseUrl/Powershell             | **Define as Global Varaible**  |
 | $ExchangeAdminPassword        | Exchange Admin Username                 | **Define as Global Varaible**  |
-| $ExchangeConnectionUri        | Exchange Admin Password                 | **Define as Global Varaible**  |
 | $Filter                       | Filter for Exchange Shared Mailboxes    | *Optional, when no filter is provided, all mailboxes will be queried*  |
 | $ProductAccessGroup           | HelloID Product Access Group            | *If not found, the product is created without an Access Group* |
 | $ProductCategory              | HelloID Product Category                | *If the category is not found, it will be created* |
