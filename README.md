@@ -41,7 +41,6 @@ Optionally, you can include an Email action.
 - [ ] To manage users, mailboxes and groups, the service account has to have the role "**Exchange Administrator**" assigned.
 - [ ] Required to run **On-Premises** since it is not allowed to import a module with the Cloud Agent.
 - [ ] Define the Global variables for your Exchange Environment
-- Installed and available [Microsoft Exchange Online PowerShell V2 module](https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps)
 
 
 ### Connection settings
