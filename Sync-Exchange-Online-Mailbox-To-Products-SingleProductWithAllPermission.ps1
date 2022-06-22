@@ -15,8 +15,8 @@ $script:BaseUrl = $portalBaseUrl
 
 
 #Target Connection Configuration     # Needed for accessing the Target System (These variables are also required for the Actions of each product)
-$ExchangeAdminUsername = $ExchangeAdminUsername
-$ExchangeAdminPassword = $ExchangeAdminPassword
+$ExchangeAdminUsername = $ExchangeOnlineAdminUsername
+$ExchangeAdminPassword = $ExchangeOnlineAdminPassword
 $Filter = "DisplayName -like 'SharedMailbox*'" # Optional, when no filter is provided ($Filter = $null), all mailboxes will be queried
 
 
@@ -27,8 +27,8 @@ $SAProductResourceOwner = ''            # If left empty the groupname will be: "
 $SAProductWorkflow = $null              # If empty. The Default HelloID Workflow is used. If specified Workflow does not exist the Product creation will raise an error.
 $FaIcon = 'inbox'
 $removeProduct = $true                  # If False product will be disabled
-$overwriteExistingProduct = $true       # If True existing product will be overwritten with the input from this script (e.g. the approval worklow or icon). Only use this when you actually changed the product input
-$overwriteExistingProductAction = $true # If True existing product actions will be overwritten with the input from this script. Only use this when you actually changed the script or variables for the action(s)
+$overwriteExistingProduct = $false       # If True existing product will be overwritten with the input from this script (e.g. the approval worklow or icon). Only use this when you actually changed the product input
+$overwriteExistingProductAction = $false # If True existing product actions will be overwritten with the input from this script. Only use this when you actually changed the script or variables for the action(s)
 $productVisibility = 'All'
 
 #Target System Configuration
@@ -40,11 +40,12 @@ $SKUPrefix = 'EXOM'                   # The prefix will be used as CombinedUniqu
 $TargetSystemName = 'Exchange SharedMailbox'
 
 # [validateSet('SendAs', 'FullAccess', 'SendOnBehalf')]
-$PermissionTypes = 'SendAs', 'FullAccess', 'SendOnBehalf'
+$PermissionTypes = 'SendAs', 'FullAccess'
 
 $includeEmailAction = $true
 $defaultFromAddress = "no-reply@helloid.com"
 $defaultToAddress = "j.doe@eyoi.org"
+
 
 #region HelloID
 function Get-HIDDefaultAgentPool {
@@ -62,7 +63,8 @@ function Get-HIDDefaultAgentPool {
             Uri    = 'agentpools'
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -82,7 +84,8 @@ function Get-HIDSelfServiceProduct {
             Uri    = 'selfservice/products'
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -102,7 +105,8 @@ function Get-HIDSelfServiceProductAction {
             Uri    = 'automationtasks'
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -122,7 +126,8 @@ function Get-HIDSelfServiceCategory {
             Uri    = 'selfservice/categories'
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -144,7 +149,8 @@ function Set-HIDSelfServiceProduct {
             uri    = 'selfservice/products'
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -181,7 +187,8 @@ function New-HIDSelfServiceCategory {
             Body   = $category
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -205,7 +212,8 @@ function Remove-HIDSelfServiceProduct {
             Uri    = "selfservice/products/$ProductGUID"
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -229,7 +237,8 @@ function Add-HIDPowerShellAction {
             Body   = $body
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -258,7 +267,8 @@ function Add-HIDEmailAction {
             Body   = $body
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -283,7 +293,8 @@ function Remove-HIDAction {
             Uri    = "selfservice/actions/$ActionGUID"
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -318,7 +329,8 @@ function New-HIDGroup {
             Body   = $groupBody
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $Pscmdlet.ThrowTerminatingError($_)
     }
 }
@@ -349,7 +361,8 @@ function Get-HIDGroup {
             Uri    = "groups/$groupname"
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         if ($_.ErrorDetails.Message -match 'Group not found') {
             return $null
         }
@@ -382,7 +395,8 @@ function Add-HIDProductMember {
             } | ConvertTo-Json
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $Pscmdlet.ThrowTerminatingError($_)
     }
 }
@@ -413,7 +427,8 @@ function Add-HIDGroupMember {
             } | ConvertTo-Json
         }
         Invoke-HIDRestMethod @splatParams
-    } catch {
+    }
+    catch {
         $Pscmdlet.ThrowTerminatingError($_)
     }
 }
@@ -443,7 +458,8 @@ function Add-HIDUserGroup {
             } | ConvertTo-Json
         }
         Invoke-HIDRestMethod @splatRestParameters
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -493,7 +509,8 @@ function Invoke-HIDRestmethod {
 
         Write-Verbose "Invoking '$Method' request to '$Uri'"
         Invoke-RestMethod @splatParams
-    } catch {
+    }
+    catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 }
@@ -511,7 +528,8 @@ function Write-HidStatus {
     )
     if ([String]::IsNullOrEmpty($portalBaseUrl)) {
         Write-Information $Message
-    } else {
+    }
+    else {
         Hid-Write-Status -Message $Message -Event $Event
     }
 }
@@ -530,7 +548,8 @@ function Write-HidSummary {
 
     if ([String]::IsNullOrEmpty($portalBaseUrl) -eq $true) {
         Write-Output ($Message)
-    } else {
+    }
+    else {
         Hid-Write-Summary -Message $Message -Event $Event
     }
 }
@@ -546,9 +565,11 @@ function Compare-Join {
     )
     if ($null -eq $DifferenceObject) {
         $Left = $ReferenceObject
-    } elseif ($null -eq $ReferenceObject ) {
+    }
+    elseif ($null -eq $ReferenceObject ) {
         $right = $DifferenceObject
-    } else {
+    }
+    else {
         $left = [string[]][Linq.Enumerable]::Except($ReferenceObject, $DifferenceObject )
         $right = [string[]][Linq.Enumerable]::Except($DifferenceObject, $ReferenceObject)
         $common = [string[]][Linq.Enumerable]::Intersect($ReferenceObject, $DifferenceObject)
@@ -1056,8 +1077,8 @@ Kind regards,
 HelloID
 '
 $ApproveEmailAction = @{
-    executeOnState      = 3
-    variables           = @(
+    executeOnState = 3
+    variables      = @(
         @{
             "name"           = "to"
             "value"          = "$defaultToAddress"
@@ -1100,8 +1121,8 @@ Kind regards,
 HelloID
 '
 $ReturnEmailAction = @{
-    executeOnState      = 11
-    variables           = @(
+    executeOnState = 11
+    variables      = @(
         @{
             "name"           = "to"
             "value"          = "$defaultToAddress"
@@ -1140,7 +1161,7 @@ $ReturnEmailAction = @{
 
 #region script
 try {
-    try{
+    try {
         Write-HidStatus -Event Information -Message "Connecting to Exchange Online"
 
         # Connect to Exchange Online in an unattended scripting scenario using user credentials (MFA not supported).
@@ -1157,10 +1178,11 @@ try {
             RecipientTypeDetails = "SharedMailbox"
             ResultSize           = "Unlimited"
         }
+        
         # Add Filter when provided
-        if($null -ne $Filter){
+        if ($null -ne $Filter) {
             $parameters += @{
-                Filter  = $Filter
+                Filter = $Filter
             }
         }
 
@@ -1190,26 +1212,19 @@ try {
 
     if ($TargetGroups.Count -eq 0) {
         Write-HidStatus -Message 'No Target Groups have been found' -Event Information
-    } else {
+    }
+    else {
         Write-HidStatus -Message "[$($TargetGroups.Count)] Target group(s)" -Event Information
     }
 
     $targetGroupsList = [System.Collections.Generic.List[Object]]::New()
     foreach ($group in $TargetGroups) {
-        foreach ($PermissionType in $PermissionTypes) {
-            $tempGroup = $group | Select-Object *
-            $type = switch ( $PermissionType.tolower()) {
-                'sendas' { 'SA' }
-                'fullaccess' { 'FA' }
-                'sendonbehalf' { 'SO' }
-            }
-            # SA FA SO
-            $tempGroup | Add-Member @{
-                CombinedUniqueId = $SKUPrefix + "$($group.$uniqueProperty)".Replace('-', '') + $type
-                TypePermission   = $PermissionType
-            }
-            $targetGroupsList.Add($tempGroup)
+        $tempGroup = $group | Select-Object *
+        $tempGroup | Add-Member @{
+            CombinedUniqueId = $SKUPrefix + "$($group.$uniqueProperty)".Replace('-', '')
+            TypePermission   = $PermissionTypes
         }
+        $targetGroupsList.Add($tempGroup)
     }
     $TargetGroups = $targetGroupsList
     $TargetGroupsGrouped = $TargetGroups | Group-Object -Property CombinedUniqueId -AsHashTable -AsString
@@ -1224,7 +1239,8 @@ try {
     if ($selfServiceCategory.isEnabled -eq $false) {
         Write-HidStatus -Message "Found a disabled ProductCategory '$ProductCategory', will enable the current category" -Event Information
         $selfServiceCategory = New-HIDSelfServiceCategory -Name "$ProductCategory" -IsEnabled $true -SelfServiceCategoryGUID  $selfServiceCategory.selfServiceCategoryGUID
-    } elseif ($null -eq $selfServiceCategory) {
+    }
+    elseif ($null -eq $selfServiceCategory) {
         Write-HidStatus -Message "No ProductCategory Found will Create a new category '$ProductCategory'" -Event Information
         $selfServiceCategory = New-HIDSelfServiceCategory -Name "$ProductCategory" -IsEnabled $true
     }
@@ -1255,7 +1271,8 @@ try {
     Write-HidStatus "[$($productExistsInHelloID.count)] Products already exist in HelloId" -Event Information
     if ($removeProduct) {
         Write-HidStatus "[$($productToRemoveFromHelloID.count)] Products will be Removed " -Event Information
-    } else {
+    }
+    else {
         Write-HidStatus 'Verify if there are products found which are already disabled.' -Event Information
         $productToRemoveFromHelloID = [array]($currentProducts | Where-Object { ( $_.code.ToLower() -in $productToRemoveFromHelloID) -and $_.visibility -ne 'Disabled' }).code
         Write-HidStatus "[$($productToRemoveFromHelloID.count)] Products will be disabled " -Event Information
@@ -1273,8 +1290,8 @@ try {
             $resourceOwnerGroup = New-HIDGroup -GroupName $resourceOwnerGroupName -isEnabled $true
         }
         $productBody = @{
-            Name                       = "$($product.name) - $($product.TypePermission)"
-            Description                = "$TargetSystemName - $($product.name) - $($product.TypePermission)"
+            Name                       = "$($product.name)"
+            Description                = "$TargetSystemName - $($product.name)"
             ManagedByGroupGUID         = $($resourceOwnerGroup.groupGuid)
             Categories                 = @($selfServiceCategory.name)
             ApprovalWorkflowName       = $SAProductWorkflow
@@ -1301,24 +1318,27 @@ try {
         if (-not $null -eq $sAAccessGroup) {
             Write-HidStatus -Message  "Adding ProductAccessGroup [$ProductAccessGroup] to Product " -Event Information
             $null = Add-HIDProductMember -selfServiceProductGUID $selfServiceProduct.selfServiceProductGUID -MemberGUID $sAAccessGroup.groupGuid
-        } else {
+        }
+        else {
             Write-HidStatus -Message  "The Specified ProductAccessGroup [$ProductAccessGroup] does not exist. We will continue without adding the access Group" -Event Warning
         }
 
         $PowerShellActions = [System.Collections.Generic.list[object]]@()
-        switch ($product.TypePermission.tolower()) {
-            'sendas' {
-                $PowerShellActions.Add($AddSendAsRightsAction)
-                $PowerShellActions.Add($RemoveSendAsRightsAction)
-                break
-            }
-            'fullaccess' {
-                $PowerShellActions.Add($AddFullAccessRightsAction)
-                $PowerShellActions.Add($RemoveFullAccessRightsAction)
-            }
-            'sendonbehalf' {
-                $PowerShellActions.Add($AddSendOnBehalfRightsAction)
-                $PowerShellActions.Add($RemoveSendOnBehalfRightsAction)
+        foreach ($productTypePermission in $product.TypePermission) {
+            switch ($productTypePermission.tolower()) {
+                'sendas' {
+                    $PowerShellActions.Add($AddSendAsRightsAction)
+                    $PowerShellActions.Add($RemoveSendAsRightsAction)
+                    break
+                }
+                'fullaccess' {
+                    $PowerShellActions.Add($AddFullAccessRightsAction)
+                    $PowerShellActions.Add($RemoveFullAccessRightsAction)
+                }
+                'sendonbehalf' {
+                    $PowerShellActions.Add($AddSendOnBehalfRightsAction)
+                    $PowerShellActions.Add($RemoveSendOnBehalfRightsAction)
+                }
             }
         }
 
@@ -1328,7 +1348,7 @@ try {
             $null = Add-HIDPowerShellAction -Body ($PowerShellAction | ConvertTo-Json)
         }
 
-        if($true -eq $includeEmailAction){
+        if ($true -eq $includeEmailAction) {
             $EmailActions = [System.Collections.Generic.list[object]]@(
                 $ApproveEmailAction
                 $ReturnEmailAction
@@ -1346,7 +1366,8 @@ try {
         if ($removeProduct) {
             Write-HidStatus "Removing Product [$($product.name)]" -Event Information
             $null = Remove-HIDSelfServiceProduct -ProductGUID  $product.selfServiceProductGUID
-        } else {
+        }
+        else {
             Write-HidStatus "Disabling Product [$($product.name)]" -Event Information
             $product.visibility = 'Disabled'
             $disableProductBody = ConvertTo-Json ($product | Select-Object -Property * -ExcludeProperty Code)
@@ -1356,14 +1377,14 @@ try {
 
     foreach ($productToUpdate in $productExistsInHelloID) {
         $product = $selfServiceProductGrouped[$productToUpdate] | Select-Object -First 1
-        if($true -eq $overwriteExistingProduct){
+        if ($true -eq $overwriteExistingProduct) {
             Write-HidStatus "Overwriting existing Product [$($product.name)]" -Event Information
             $overwriteProductBody = ConvertTo-Json ($product | Select-Object -Property *)
             $null = Set-HIDSelfServiceProduct -ProductJson $overwriteProductBody
 
-            if($true -eq $overwriteExistingProductAction){
+            if ($true -eq $overwriteExistingProductAction) {
                 $productActions = $selfServiceProductActionGrouped[$($product.selfServiceProductGUID)]
-                foreach($productAction in $productActions){
+                foreach ($productAction in $productActions) {
                     $overwritePowerShellAction = $null
                     switch ($productAction.name.tolower()) {
                         'add-sendasrights' {
@@ -1430,7 +1451,8 @@ try {
                 }
             }
 
-        }else{
+        }
+        else {
             # Make sure existing products are enabled
             if ($product.visibility -eq 'Disabled') {
                 Write-HidStatus "Enabling existing Product [$($product.name)]" -Event Information
@@ -1445,7 +1467,8 @@ try {
 
     Write-HidStatus -Message "Successfully synchronized [$TargetSystemName] to HelloID products" -Event Success
     Write-HidSummary -Message "Successfully synchronized [$TargetSystemName] to HelloID products" -Event Success
-} catch {
+}
+catch {
     Write-HidStatus -Message "Error synchronization of [$TargetSystemName] to HelloID products" -Event Error
     Write-HidStatus -Message "Exception message: $($_.Exception.Message)" -Event Error
     Write-HidStatus -Message "Exception details: $($_.errordetails)" -Event Error
