@@ -1358,7 +1358,32 @@ try {
         $product = $selfServiceProductGrouped[$productToUpdate] | Select-Object -First 1
         if($true -eq $overwriteExistingProduct){
             Write-HidStatus "Overwriting existing Product [$($product.name)]" -Event Information
-            $overwriteProductBody = ConvertTo-Json ($product | Select-Object -Property *)
+            # Copy existing product
+            $overwriteProductBody = [PSCustomObject]@{}
+            $product.psobject.properties | ForEach-Object {
+                $overwriteProductBody | Add-Member -MemberType $_.MemberType -Name $_.Name -Value $_.Value -Force
+            }
+
+            # Optional, set product properties to update (that are in response of get products: https://docs.helloid.com/hc/en-us/articles/115003027353-GET-Get-products)
+            # $overwriteProductBody.name = "$($product.name)"
+            # $overwriteProductBody.Description = "$TargetSystemName - $($product.name)"
+
+            # Check if resource owner group is specified and exists, if not create new group
+            $resourceOwnerGroupName = if ([string]::IsNullOrWhiteSpace($SAProductResourceOwner) ) { "$($product.name)  Resource Owners" } else { $SAProductResourceOwner }
+
+            $resourceOwnerGroup = Get-HIDGroup -GroupName $resourceOwnerGroupName
+            if ($null -eq $resourceOwnerGroup ) {
+                Write-HidStatus "Creating a new resource owner group for Product [$($resourceOwnerGroupName ) Resource Owners]" -Event Information
+                $resourceOwnerGroup = New-HIDGroup -GroupName $resourceOwnerGroupName -isEnabled $true
+            }            
+            $overwriteProductBody.ManagedByGroupGUID = $($resourceOwnerGroup.groupGuid)
+
+            # Optional, add product properties to update (that aren't in response of get products: https://docs.helloid.com/hc/en-us/articles/115003027353-GET-Get-products)
+            $overwriteProductBody | Add-Member @{
+                ApprovalWorkflowName = $SAProductWorkflow
+            }
+
+            $overwriteProductBody = ConvertTo-Json -InputObject $overwriteProductBody -depth 10
             $null = Set-HIDSelfServiceProduct -ProductJson $overwriteProductBody
 
             if($true -eq $overwriteExistingProductAction){
