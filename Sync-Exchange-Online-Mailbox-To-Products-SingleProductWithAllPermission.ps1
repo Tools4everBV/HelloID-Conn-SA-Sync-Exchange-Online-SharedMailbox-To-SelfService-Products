@@ -318,7 +318,7 @@ function New-HIDGroup {
     try {
         Write-Verbose "Invoking command '$($MyInvocation.MyCommand)'"
         $groupBody = @{
-            name      = "$GroupName Resource Owners"
+            name      = $GroupName
             isEnabled = $isEnabled
             userNames = ''
         } | ConvertTo-Json
@@ -1276,11 +1276,11 @@ try {
     foreach ($productToCreate in $productToCreateInHelloID) {
         $product = $TargetGroupsGrouped[$productToCreate]
         Write-HidStatus "Creating Product [$($product.name)]" -Event Information
-        $resourceOwnerGroupName = if ([string]::IsNullOrWhiteSpace($SAProductResourceOwner) ) { "$($product.name)  Resource Owners" } else { $SAProductResourceOwner }
+        $resourceOwnerGroupName = if ([string]::IsNullOrWhiteSpace($SAProductResourceOwner) ) { "$($product.name) Resource Owners" } else { $SAProductResourceOwner }
 
         $resourceOwnerGroup = Get-HIDGroup -GroupName $resourceOwnerGroupName
         if ($null -eq $resourceOwnerGroup ) {
-            Write-HidStatus "Creating a new resource owner group for Product [$($resourceOwnerGroupName ) Resource Owners]" -Event Information
+            Write-HidStatus "Creating a new resource owner group for Product [$($resourceOwnerGroupName)]" -Event Information
             $resourceOwnerGroup = New-HIDGroup -GroupName $resourceOwnerGroupName -isEnabled $true
         }
         $productBody = @{
@@ -1380,15 +1380,17 @@ try {
             }
 
             # Optional, set product properties to update (that are in response of get products: https://docs.helloid.com/hc/en-us/articles/115003027353-GET-Get-products)
-            # $overwriteProductBody.name = "$($product.name)"
-            # $overwriteProductBody.Description = "$TargetSystemName - $($product.name)"
+            $newProduct = $TargetGroupsGrouped[$productToUpdate]
+            $overwriteProductBody.name = "$($newProduct.name)"
+            $overwriteProductBody.Description = "$TargetSystemName - $($newProduct.name)"
+
 
             # Check if resource owner group is specified and exists, if not create new group
-            $resourceOwnerGroupName = if ([string]::IsNullOrWhiteSpace($SAProductResourceOwner) ) { "$($product.name)  Resource Owners" } else { $SAProductResourceOwner }
+            $resourceOwnerGroupName = if ([string]::IsNullOrWhiteSpace($SAProductResourceOwner) ) { "$($product.name) Resource Owners" } else { $SAProductResourceOwner }
 
             $resourceOwnerGroup = Get-HIDGroup -GroupName $resourceOwnerGroupName
             if ($null -eq $resourceOwnerGroup ) {
-                Write-HidStatus "Creating a new resource owner group for Product [$($resourceOwnerGroupName ) Resource Owners]" -Event Information
+                Write-HidStatus "Creating a new resource owner group for Product [$($resourceOwnerGroupName)]" -Event Information
                 $resourceOwnerGroup = New-HIDGroup -GroupName $resourceOwnerGroupName -isEnabled $true
             }            
             $overwriteProductBody.ManagedByGroupGUID = $($resourceOwnerGroup.groupGuid)
