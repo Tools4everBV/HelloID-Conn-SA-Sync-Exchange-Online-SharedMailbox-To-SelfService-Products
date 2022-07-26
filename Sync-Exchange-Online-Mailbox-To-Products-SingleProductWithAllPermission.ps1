@@ -15,8 +15,8 @@ $script:BaseUrl = $portalBaseUrl
 
 
 #Target Connection Configuration     # Needed for accessing the Target System (These variables are also required for the Actions of each product)
-$ExchangeAdminUsername = $ExchangeOnlineAdminUsername
-$ExchangeAdminPassword = $ExchangeOnlineAdminPassword
+$ExchangeOnlineAdminUsername = $ExchangeAdminUsername
+$ExchangeOnlineAdminPassword = $ExchangeAdminPassword
 $Filter = "DisplayName -like 'Shared-MBX-*'" # Optional, when no filter is provided ($Filter = $null), all mailboxes will be queried
 
 
