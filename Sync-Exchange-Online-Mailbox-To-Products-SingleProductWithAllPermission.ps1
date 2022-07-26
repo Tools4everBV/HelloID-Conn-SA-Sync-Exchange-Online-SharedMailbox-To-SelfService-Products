@@ -1155,85 +1155,85 @@ $ReturnEmailAction = @{
 
 #region script
 try {
-    try {
-        # Import module
-        $moduleName = "ExchangeOnlineManagement"
-        $commands = @(
-            "Get-User",
-            "Get-DistributionGroup",
-            "Add-DistributionGroupMember",
-            "Remove-DistributionGroupMember",
-            "Get-EXOMailbox",
-            "Add-MailboxPermission",
-            "Add-RecipientPermission",
-            "Set-Mailbox",
-            "Remove-MailboxPermission",
-            "Remove-RecipientPermission"
-        )
+    # Import module
+    $moduleName = "ExchangeOnlineManagement"
+    $commands = @(
+        "Get-User",
+        "Get-DistributionGroup",
+        "Add-DistributionGroupMember",
+        "Remove-DistributionGroupMember",
+        "Get-EXOMailbox",
+        "Add-MailboxPermission",
+        "Add-RecipientPermission",
+        "Set-Mailbox",
+        "Remove-MailboxPermission",
+        "Remove-RecipientPermission"
+    )
 
-        # If module is imported say that and do nothing
-        if (Get-Module | Where-Object { $_.Name -eq $ModuleName }) {
-            Write-HidStatus -Event Information -Message "Module $ModuleName is already imported."
+    # If module is imported say that and do nothing
+    if (Get-Module | Where-Object { $_.Name -eq $ModuleName }) {
+        Write-HidStatus -Event Information -Message "Module $ModuleName is already imported."
+    }
+    else {
+        # If module is not imported, but available on disk then import
+        if (Get-Module -ListAvailable | Where-Object { $_.Name -eq $ModuleName }) {
+            $module = Import-Module $ModuleName -Cmdlet $commands
+            Write-HidStatus -Event Information -Message "Imported module $ModuleName"
         }
         else {
-            # If module is not imported, but available on disk then import
-            if (Get-Module -ListAvailable | Where-Object { $_.Name -eq $ModuleName }) {
-                $module = Import-Module $ModuleName -Cmdlet $commands
-                Write-HidStatus -Event Information -Message "Imported module $ModuleName"
-            }
-            else {
-                # If the module is not imported, not available and not in the online gallery then abort
-                Write-HidStatus -Event Failed -Message "Module $ModuleName not imported, not available. Please install the module using: Install-Module -Name $ModuleName -Force"
-                Write-HidSummary -Event Failed -Message "Module $ModuleName not imported, not available. Please install the module using: Install-Module -Name $ModuleName -Force"
-            }
+            # If the module is not imported, not available and not in the online gallery then abort
+            Write-HidStatus -Event Failed -Message "Module $ModuleName not imported, not available. Please install the module using: Install-Module -Name $ModuleName -Force"
+            Write-HidSummary -Event Failed -Message "Module $ModuleName not imported, not available. Please install the module using: Install-Module -Name $ModuleName -Force"
         }
+    }
 
-        # Check if Exchange Connection already exists
-        try {
-            $checkCmd = Get-User -ResultSize 1 -ErrorAction Stop | Out-Null
-            $connectedToExchange = $true
+    # Check if Exchange Connection already exists
+    try {
+        $checkCmd = Get-User -ResultSize 1 -ErrorAction Stop | Out-Null
+        $connectedToExchange = $true
+    }
+    catch {
+        if ($_.Exception.Message -like "The term 'Get-User' is not recognized as the name of a cmdlet, function, script file, or operable program.*") {
+            $connectedToExchange = $false
         }
-        catch {
-            if ($_.Exception.Message -like "The term 'Get-User' is not recognized as the name of a cmdlet, function, script file, or operable program.*") {
-                $connectedToExchange = $false
-            }
-        }
+    }
             
-        # Connect to Exchange
-        try {
-            if ($connectedToExchange -eq $false) {
-                Write-HidStatus -Event Information -Message "Connecting to Exchange Online.."
+    # Connect to Exchange
+    try {
+        if ($connectedToExchange -eq $false) {
+            Write-HidStatus -Event Information -Message "Connecting to Exchange Online.."
 
-                # Connect to Exchange Online in an unattended scripting scenario using user credentials (MFA not supported).
-                $securePassword = ConvertTo-SecureString $ExchangeAdminPassword -AsPlainText -Force
-                $credential = [System.Management.Automation.PSCredential]::new($ExchangeAdminUsername, $securePassword)
-                $exchangeSessionParams = @{
-                    Credential       = $credential
-                    CommandName      = $commands
-                    ShowBanner       = $false
-                    ShowProgress     = $false
-                    TrackPerformance = $false
-                    ErrorAction      = 'Stop'
-                }
-                $exchangeSession = Connect-ExchangeOnline @exchangeSessionParams
+            # Connect to Exchange Online in an unattended scripting scenario using user credentials (MFA not supported).
+            $securePassword = ConvertTo-SecureString $ExchangeAdminPassword -AsPlainText -Force
+            $credential = [System.Management.Automation.PSCredential]::new($ExchangeAdminUsername, $securePassword)
+            $exchangeSessionParams = @{
+                Credential       = $credential
+                CommandName      = $commands
+                ShowBanner       = $false
+                ShowProgress     = $false
+                TrackPerformance = $false
+                ErrorAction      = 'Stop'
+            }
+            $exchangeSession = Connect-ExchangeOnline @exchangeSessionParams
 
-                Write-HidStatus -Event Success -Message "Successfully connected to Exchange Online"
-            }
-            else {
-                Write-HidStatus -Event Information -Message "Already connected to Exchange Online"
-            }
+            Write-HidStatus -Event Success -Message "Successfully connected to Exchange Online"
         }
-        catch {
-            if (-Not [string]::IsNullOrEmpty($_.Exception.InnerExceptions)) {
-                $errorMessage = "$($_.Exception.InnerExceptions)"
-            }
-            else {
-                $errorMessage = "$($_.Exception.Message) $($_.ScriptStackTrace)"
-            }
-            Write-HidStatus -Event Error -Message "Could not connect to Exchange Online, error: $errorMessage"
-            Write-HidSummary -Event Failed -Message "Failed to connect to Exchange Online, error: $_"
+        else {
+            Write-HidStatus -Event Information -Message "Already connected to Exchange Online"
         }
+    }
+    catch {
+        if (-Not [string]::IsNullOrEmpty($_.Exception.InnerExceptions)) {
+            $errorMessage = "$($_.Exception.InnerExceptions)"
+        }
+        else {
+            $errorMessage = "$($_.Exception.Message) $($_.ScriptStackTrace)"
+        }
+        Write-HidStatus -Event Error -Message "Could not connect to Exchange Online, error: $errorMessage"
+        Write-HidSummary -Event Failed -Message "Failed to connect to Exchange Online, error: $_"
+    }
 
+    try {
         # Only get Exchange Shared Mailboxes (can be changed easily to get all mailboxes)
         Write-HidStatus -Event Information -Message "Querying Exchange Shared Mailboxes"
 
